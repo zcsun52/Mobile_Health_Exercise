@@ -10,9 +10,6 @@ from os import listdir
 from os.path import isfile, join
 from math import sqrt
 import numpy as np
-from scipy import signal
-from scipy.fft import fft2
-import matplotlib.pyplot as plt
 
 class LilyGoDataset(Dataset):
     def __init__(self, data_dir, save_dir, device, type, packed=False, normalized=False) -> None:
@@ -98,9 +95,26 @@ class LilyGoDataset(Dataset):
         data_filtered = self.get_lowpass(data_filtered)
         return data_filtered
     
+    def one_hot(self, activity_labels):
+        activitu_label_onehot = [0, 0, 0, 0]
+        for i in range(4):
+            if i in activity_labels:
+                activitu_label_onehot[i] = 1
+        return activitu_label_onehot
+    
+    def segment(self, raw_data, all_data):
+        # Calculate window size
+        sampling_rate = 200
+        std_win = 3 #s
+        window_size = round(std_win*sampling_rate)
+        for s in range(0, len(raw_data)-window_size, round(window_size/2)):
+            all_data.append(raw_data[s:s+window_size])
+
+
+    
     def load_data(self):
         data_folder = self.data_dir + self.type
-        magn = []
+        magn_data = []
         activity_labels = []
         path_labels = []
         loaction_labels = []
@@ -114,19 +128,20 @@ class LilyGoDataset(Dataset):
             amagn_raw = [sqrt(a**2+trace.data['ay'].values[i]**2+trace.data['az'].values[i]**2)for i, a in enumerate(trace.data['ay'].values)]
             # Pre-process data
             amagn = self.pre_process(amagn_raw)
-            magn.extend([amagn])
-            activity_labels.extend([trace.labels['activities']])
-            path_labels.extend([trace.labels['path_idx']]) 
-            loaction_labels.extend([trace.labels['board_loc']]) 
+            self.segment(amagn, magn_data)
+            # one hot encoding
+            activity_labels.append(self.one_hot(trace.labels['activities']))
+            path_labels.append(trace.labels['path_idx'])
+            loaction_labels.append(trace.labels['board_loc'])
             if i%10 == 0:
                 print('%d/%d files loaded' % (i, len(filenames)))
         
         # Save the data and labels to a numpy file
-        np.save(self.save_dir + self.type+'_data.npy', magn)
-        np.save(self.save_dir + self.type+'_activity_label.npy', activity_labels)
-        np.save(self.save_dir + self.type+'_path_label.npy', path_labels)
-        np.save(self.save_dir + self.type+'_loaction_label.npy', loaction_labels)
-        return magn ,activity_labels ,path_labels ,loaction_labels
+        np.save(self.save_dir + self.type+'_data.npy', np.array(magn_data))
+        np.save(self.save_dir + self.type+'_activity_label.npy', np.array(activity_labels))
+        np.save(self.save_dir + self.type+'_path_label.npy', np.array(path_labels))
+        np.save(self.save_dir + self.type+'_loaction_label.npy', np.array(loaction_labels))
+        return magn_data ,activity_labels ,path_labels ,loaction_labels
 
 
 
@@ -142,5 +157,5 @@ class LilyGoDataset(Dataset):
 data_dir = 'E:\\Sunzhichao\\ETHz\\2223Spring\\Mobile_Health\\data\\'
 save_dir = '.\\Loaded_data\\'
 dataset = LilyGoDataset(data_dir=data_dir, save_dir=save_dir, device='CPU', type='train', packed=True)
-print(np.load(save_dir + 'train_path_label.npy', allow_pickle=True))
+print(np.load(save_dir + 'train_data.npy'))
 
