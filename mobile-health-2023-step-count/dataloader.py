@@ -31,10 +31,11 @@ class LilyGoDataset(Dataset):
 
         if packed:
             if type == 'train':
-                self.data = np.load(self.save_dir + 'train_data.npy', allow_pickle=True)
-                self.activity_labels = np.load(self.save_dir + 'train_activity_label.npy', allow_pickle=True)
-                self.path_labels = np.load(self.save_dir + 'train_path_label.npy', allow_pickle=True)
-                self.loaction_labels = np.load(self.save_dir + 'train_loaction_label.npy', allow_pickle=True)
+                self.data = np.load(self.save_dir + 'train_data.npy')
+                self.data_count = np.load(self.save_dir + 'train_data_count.npy')
+                self.activity_labels = np.load(self.save_dir + 'train_activity_label.npy')
+                self.path_labels = np.load(self.save_dir + 'train_path_label.npy')
+                self.loaction_labels = np.load(self.save_dir + 'train_loaction_label.npy')
             elif type == 'val':
                 self.data = np.load(self.save_dir + 'val_data.npy')
                 self.activity_labels = np.load(self.save_dir + 'val_activity_label.npy')
@@ -47,7 +48,7 @@ class LilyGoDataset(Dataset):
                 self.loaction_labels = np.load(self.save_dir + 'test_loaction_label.npy')
         else:
             print(self.type + ' dataset has not been prepared. Preparing now.')
-            self.data ,self.activity_labels ,self.path_labels ,self.loaction_labels = self.load_data()
+            self.data, data_count, self.activity_labels ,self.path_labels ,self.loaction_labels = self.load_data()
             print(self.type + ' data loading finished.')
             
     # data pre-processing
@@ -102,19 +103,23 @@ class LilyGoDataset(Dataset):
                 activitu_label_onehot[i] = 1
         return activitu_label_onehot
     
-    def segment(self, raw_data, all_data):
+    def segment(self, raw_data, all_data, data_count):
         # Calculate window size
         sampling_rate = 200
         std_win = 3 #s
         window_size = round(std_win*sampling_rate)
+        prev_data_count = len(all_data)
         for s in range(0, len(raw_data)-window_size, round(window_size/2)):
             all_data.append(raw_data[s:s+window_size])
+        data_count.append(len(all_data)-prev_data_count)
+
 
 
     
     def load_data(self):
         data_folder = self.data_dir + self.type
         magn_data = []
+        data_count = []
         activity_labels = []
         path_labels = []
         loaction_labels = []
@@ -128,20 +133,21 @@ class LilyGoDataset(Dataset):
             amagn_raw = [sqrt(a**2+trace.data['ay'].values[i]**2+trace.data['az'].values[i]**2)for i, a in enumerate(trace.data['ay'].values)]
             # Pre-process data
             amagn = self.pre_process(amagn_raw)
-            self.segment(amagn, magn_data)
+            self.segment(amagn, magn_data, data_count)
             # one hot encoding
-            activity_labels.append(self.one_hot(trace.labels['activities']))
-            path_labels.append(trace.labels['path_idx'])
-            loaction_labels.append(trace.labels['board_loc'])
+            # activity_labels.append(self.one_hot(trace.labels['activities']))
+            # path_labels.append(trace.labels['path_idx'])
+            # loaction_labels.append(trace.labels['board_loc'])
             if i%10 == 0:
                 print('%d/%d files loaded' % (i, len(filenames)))
         
         # Save the data and labels to a numpy file
-        np.save(self.save_dir + self.type+'_data.npy', np.array(magn_data))
-        np.save(self.save_dir + self.type+'_activity_label.npy', np.array(activity_labels))
-        np.save(self.save_dir + self.type+'_path_label.npy', np.array(path_labels))
-        np.save(self.save_dir + self.type+'_loaction_label.npy', np.array(loaction_labels))
-        return magn_data ,activity_labels ,path_labels ,loaction_labels
+        # np.save(self.save_dir + self.type+'_data.npy', np.array(magn_data))
+        np.save(self.save_dir + self.type+'_data_count.npy', np.array(data_count))
+        # np.save(self.save_dir + self.type+'_activity_label.npy', np.array(activity_labels))
+        # np.save(self.save_dir + self.type+'_path_label.npy', np.array(path_labels))
+        # np.save(self.save_dir + self.type+'_loaction_label.npy', np.array(loaction_labels))
+        return magn_data, data_count, activity_labels ,path_labels ,loaction_labels
 
 
 
@@ -157,5 +163,5 @@ class LilyGoDataset(Dataset):
 data_dir = 'E:\\Sunzhichao\\ETHz\\2223Spring\\Mobile_Health\\data\\'
 save_dir = '.\\Loaded_data\\'
 dataset = LilyGoDataset(data_dir=data_dir, save_dir=save_dir, device='CPU', type='train', packed=True)
-print(np.load(save_dir + 'train_data.npy'))
+print(np.load(save_dir + 'train_data_count.npy'))
 
