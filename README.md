@@ -1,4 +1,5 @@
 # Mobile_Health_Exercise
+
 [Lecture project provided by Prof. Christian Holz in the course "Mobile Health and Activity Monitoring, Spring 2023, ETH"]
 
 - Develop an algorithm to detect step count based on accelerometer data from a LilyGo smartwatch.
@@ -7,3 +8,4 @@
 - Sensor Fusion
 
 ![step_count_result](https://github.com/Ananaloto/Mobile_Health_Exercise/blob/main/Step_detection.png)
+
