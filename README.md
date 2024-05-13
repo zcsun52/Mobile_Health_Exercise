@@ -6,4 +6,4 @@
 - Developed an algorithm using previously recorded datasets with wearable devices to predict four different aspects of the user's physical activity: activity type, path taken, step count, and smartwatch location on body.
 - Sensor Fusion
 
-![step_count_result](https://github.com/Ananaloto/Mobile_Health_Exercise/blob/main/Step_count.png)
+![step_count_result](https://github.com/Ananaloto/Mobile_Health_Exercise/blob/main/Step_detection.png)
