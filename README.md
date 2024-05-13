@@ -4,5 +4,6 @@
 - Develop an algorithm to detect step count based on accelerometer data from a LilyGo smartwatch.
 - Data Collection and labelling with LilyGo for the Path Detection in Zurich.
 - Developed an algorithm using previously recorded datasets with wearable devices to predict four different aspects of the user's physical activity: activity type, path taken, step count, and smartwatch location on body.
+- Sensor Fusion
 
 ![step_count_result](https://github.com/Ananaloto/Mobile_Health_Exercise/blob/main/Step_count.png)
